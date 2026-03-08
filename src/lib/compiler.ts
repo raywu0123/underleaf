@@ -15,7 +15,7 @@ export class LatexCompiler {
     this.isInitializing = true;
     this.initPromise = (async () => {
       this.runner = new BusyTexRunner({
-        busytexBasePath: '/core/busytex',
+        busytexBasePath: import.meta.env.BASE_URL + 'core/busytex',
         verbose: false
       });
       
