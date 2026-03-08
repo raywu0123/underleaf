@@ -386,3 +386,12 @@ body {
   color: #fff;
   font-weight: 500;
 }
+
+.dashboard-footer {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 0.8rem;
+  border-top: 1px solid #333;
+  margin-top: auto;
+}

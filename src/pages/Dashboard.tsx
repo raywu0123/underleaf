@@ -92,6 +92,9 @@ export function Dashboard() {
           )}
         </section>
       </main>
+      <footer className="dashboard-footer">
+        <p>Version: {__COMMIT_HASH__} (Built: {__BUILD_TIME__})</p>
+      </footer>
     </div>
   );
 }
