@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import MonacoEditor, { type OnMount } from '@monaco-editor/react';
 import * as Y from 'yjs';
-import { WebrtcProvider } from 'y-webrtc';
+import YPartyKitProvider from 'y-partykit/provider';
 import { MonacoBinding } from 'y-monaco';
 import randomColor from 'randomcolor';
 
@@ -22,7 +22,7 @@ const getRandomName = () => `Anonymous ${ANIMALS[Math.floor(Math.random() * ANIM
 
 export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const editorRef = useRef<any>(null);
-  const providerRef = useRef<WebrtcProvider | null>(null);
+  const providerRef = useRef<YPartyKitProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
 
@@ -36,18 +36,19 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     const ydoc = new Y.Doc();
     docRef.current = ydoc;
 
-    // 2. Connect to a WebRTC provider
-    const provider = new WebrtcProvider(roomName, ydoc, {
-      signaling: [
-        'wss://yjs-webrtc-signaling-eu.herokuapp.com',
-        'wss://signaling.yjs.dev',
-        'wss://y-webrtc-signaling-eu.herokuapp.com'
-      ]
-    });
+    // 2. Connect to a highly reliable PartyKit WebSocket provider
+    // Note: We are using a demo/public PartyKit server URL here for demonstration.
+    // For a real production app, you would deploy your own backend using 'npx partykit deploy'
+    const provider = new YPartyKitProvider(
+      "yjs.partykit.dev", 
+      roomName, 
+      ydoc
+    );
     providerRef.current = provider;
 
     provider.on('status', (event: any) => {
-      setConnected(event.status === 'connected');
+      // PartyKit fires status 'connected' when the WebSocket connects
+      setConnected(event === 'connected');
     });
 
     // 3. Setup Awareness (Avatars & Cursors)
