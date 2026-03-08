@@ -3,12 +3,22 @@ import MonacoEditor, { type OnMount } from '@monaco-editor/react';
 import * as Y from 'yjs';
 import { WebrtcProvider } from 'y-webrtc';
 import { MonacoBinding } from 'y-monaco';
+import randomColor from 'randomcolor';
 
 interface EditorProps {
   roomName: string;
   onCompile: (content: string) => void;
   isCompiling: boolean;
 }
+
+interface UserAwareness {
+  name: string;
+  color: string;
+  id: string;
+}
+
+const ANIMALS = ['Panda', 'Tiger', 'Penguin', 'Koala', 'Fox', 'Rabbit', 'Lion', 'Bear', 'Wolf', 'Owl', 'Dolphin', 'Eagle', 'Turtle', 'Cheetah', 'Elephant', 'Monkey'];
+const getRandomName = () => `Anonymous ${ANIMALS[Math.floor(Math.random() * ANIMALS.length)]}`;
 
 export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const editorRef = useRef<any>(null);
@@ -17,6 +27,7 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const docRef = useRef<Y.Doc | null>(null);
 
   const [connected, setConnected] = useState(false);
+  const [connectedUsers, setConnectedUsers] = useState<UserAwareness[]>([]);
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -26,7 +37,6 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     docRef.current = ydoc;
 
     // 2. Connect to a WebRTC provider
-    // By using the same roomName, multiple clients will connect and sync.
     const provider = new WebrtcProvider(roomName, ydoc, {
       signaling: [
         'wss://yjs-webrtc-signaling-eu.herokuapp.com',
@@ -40,10 +50,29 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
       setConnected(event.status === 'connected');
     });
 
-    // 3. Define a shared text type
+    // 3. Setup Awareness (Avatars & Cursors)
+    const userColor = randomColor({ luminosity: 'dark' });
+    const userName = getRandomName();
+    const userId = Math.random().toString(36).substring(7);
+
+    provider.awareness.setLocalStateField('user', {
+      name: userName,
+      color: userColor,
+      id: userId
+    });
+
+    provider.awareness.on('change', () => {
+      const states = Array.from(provider.awareness.getStates().values());
+      const users = states.map((state: any) => state.user).filter(Boolean);
+      // Ensure uniqueness by ID in case of duplicates
+      const uniqueUsers = Array.from(new Map(users.map(u => [u.id, u])).values());
+      setConnectedUsers(uniqueUsers);
+    });
+
+    // 4. Define a shared text type
     const ytext = ydoc.getText('monaco');
 
-    // 4. Bind Yjs to the Monaco Editor
+    // 5. Bind Yjs to the Monaco Editor
     const binding = new MonacoBinding(
       ytext,
       editorRef.current.getModel(),
@@ -91,19 +120,37 @@ E = mc^2
   return (
     <div className="editor-container">
       <div className="editor-header">
-        <span className="room-info">
-          Room: <strong>{roomName}</strong> 
-          <span className={connected ? 'status connected' : 'status'}>
-            {connected ? ' (Connected)' : ' (Connecting...)'}
+        <div className="editor-header-left">
+          <span className="room-info">
+            Room: <strong>{roomName}</strong> 
+            <span className={connected ? 'status connected' : 'status'}>
+              {connected ? ' (Connected)' : ' (Connecting...)'}
+            </span>
           </span>
-        </span>
-        <button 
-          className="compile-btn" 
-          onClick={() => onCompile(docRef.current?.getText('monaco').toString() || '')}
-          disabled={isCompiling}
-        >
-          {isCompiling ? 'Compiling...' : 'Compile (⌘+Enter)'}
-        </button>
+        </div>
+        
+        <div className="editor-header-right">
+          <div className="avatars-container">
+            {connectedUsers.map(user => (
+              <div 
+                key={user.id} 
+                className="user-avatar" 
+                style={{ backgroundColor: user.color }}
+                title={user.name}
+              >
+                {user.name.split(' ')[1]?.[0] || user.name[0]}
+              </div>
+            ))}
+          </div>
+
+          <button 
+            className="compile-btn" 
+            onClick={() => onCompile(docRef.current?.getText('monaco').toString() || '')}
+            disabled={isCompiling}
+          >
+            {isCompiling ? 'Compiling...' : 'Compile (⌘+Enter)'}
+          </button>
+        </div>
       </div>
       <div className="editor-body">
         <MonacoEditor

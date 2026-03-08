@@ -395,3 +395,57 @@ body {
   border-top: 1px solid #333;
   margin-top: auto;
 }
+
+/* Collaboration UI */
+.editor-header-left, .editor-header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatars-container {
+  display: flex;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: white;
+  border: 2px solid #252526;
+  margin-left: -8px;
+  cursor: help;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.user-avatar:first-child {
+  margin-left: 0;
+}
+
+/* y-monaco remote cursors styling */
+.yRemoteSelection {
+  background-color: rgb(250, 129, 0, 0.4);
+}
+
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2px solid orange;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.yRemoteSelectionHead::after {
+  position: absolute;
+  content: ' ';
+  border: 4px solid transparent;
+  border-top-color: orange;
+  left: -5px;
+  top: -4px;
+}
