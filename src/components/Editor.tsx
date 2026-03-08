@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import MonacoEditor, { type OnMount } from '@monaco-editor/react';
 import * as Y from 'yjs';
-import YPartyKitProvider from 'y-partykit/provider';
+import { WebsocketProvider } from 'y-websocket';
 import { MonacoBinding } from 'y-monaco';
 import randomColor from 'randomcolor';
 
@@ -44,7 +44,7 @@ const getOrCreateUser = (): UserAwareness => {
 
 export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const editorRef = useRef<any>(null);
-  const providerRef = useRef<YPartyKitProvider | null>(null);
+  const providerRef = useRef<WebsocketProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
 
@@ -58,19 +58,17 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     const ydoc = new Y.Doc();
     docRef.current = ydoc;
 
-    // 2. Connect to a highly reliable PartyKit WebSocket provider
-    // Note: We are using a demo/public PartyKit server URL here for demonstration.
-    // For a real production app, you would deploy your own backend using 'npx partykit deploy'
-    const provider = new YPartyKitProvider(
-      "yjs.partykit.dev", 
-      roomName, 
+    // 2. Connect to the official Yjs WebSocket demo server
+    // For a production app, you would run your own y-websocket server (e.g., node ./node_modules/y-websocket/bin/server.js)
+    const provider = new WebsocketProvider(
+      'wss://demos.yjs.dev/ws',
+      roomName,
       ydoc
     );
     providerRef.current = provider;
 
     provider.on('status', (event: any) => {
-      // PartyKit fires status 'connected' when the WebSocket connects
-      setConnected(event === 'connected');
+      setConnected(event.status === 'connected');
     });
 
     // 3. Setup Awareness (Avatars & Cursors)
