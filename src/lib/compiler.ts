@@ -1,5 +1,20 @@
 import { BusyTexRunner, PdfLatex } from 'texlyre-busytex';
 
+export type ProgressCallback = (msg: string) => void;
+
+// Monkey-patch Worker to capture BusyTeX initialization prints
+const OriginalWorker = window.Worker;
+window.Worker = class extends OriginalWorker {
+  constructor(stringUrl: string | URL, options?: WorkerOptions) {
+    super(stringUrl, options);
+    this.addEventListener('message', (e) => {
+      if (typeof e.data?.print === 'string' && e.data.print.includes('Downloading data')) {
+        window.dispatchEvent(new CustomEvent('busytex-download', { detail: e.data.print }));
+      }
+    });
+  }
+} as any;
+
 export class LatexCompiler {
   private runner: BusyTexRunner | null = null;
   private pdflatex: PdfLatex | null = null;
@@ -28,14 +43,27 @@ export class LatexCompiler {
     this.isInitializing = false;
   }
 
-  async compile(code: string): Promise<{ success: boolean; pdfUrl?: string; error?: string }> {
-    await this.init();
-
-    if (!this.pdflatex) {
-      return { success: false, error: "Compiler not initialized" };
+  async compile(code: string, onProgress?: ProgressCallback): Promise<{ success: boolean; pdfUrl?: string; error?: string }> {
+    const handleProgress = (e: Event) => {
+      if (onProgress) onProgress((e as CustomEvent).detail);
+    };
+    
+    if (onProgress) {
+      window.addEventListener('busytex-download', handleProgress);
+      onProgress('Initializing compiler...');
     }
 
     try {
+      await this.init();
+
+      if (onProgress) {
+        onProgress('Compiling...');
+      }
+
+      if (!this.pdflatex) {
+        return { success: false, error: "Compiler not initialized" };
+      }
+
       const result = await this.pdflatex.compile({
         input: code,
       });
@@ -49,6 +77,10 @@ export class LatexCompiler {
       }
     } catch (e: any) {
       return { success: false, error: e.message || 'Unknown compilation error' };
+    } finally {
+      if (onProgress) {
+        window.removeEventListener('busytex-download', handleProgress);
+      }
     }
   }
 }

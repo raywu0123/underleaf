@@ -10,6 +10,7 @@ export function Document() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
+  const [progressMsg, setProgressMsg] = useState<string | null>(null);
   const [docTitle, setDocTitle] = useState('Untitled Document');
 
   useEffect(() => {
@@ -26,10 +27,13 @@ export function Document() {
     if (isCompiling || !id) return;
     
     setIsCompiling(true);
+    setProgressMsg("Initializing compiler...");
     setError(null);
     store.updateDocumentDate(id);
     
-    const result = await compiler.compile(content);
+    const result = await compiler.compile(content, (msg) => {
+      setProgressMsg(msg);
+    });
     
     if (result.success && result.pdfUrl) {
       setPdfUrl(result.pdfUrl);
@@ -39,6 +43,7 @@ export function Document() {
     }
     
     setIsCompiling(false);
+    setProgressMsg(null);
   };
 
   if (!id) {
@@ -80,6 +85,7 @@ export function Document() {
             pdfUrl={pdfUrl} 
             error={error} 
             isCompiling={isCompiling} 
+            progressMsg={progressMsg}
           />
         </div>
       </main>

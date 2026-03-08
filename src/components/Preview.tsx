@@ -2,14 +2,19 @@ interface PreviewProps {
   pdfUrl: string | null;
   error: string | null;
   isCompiling: boolean;
+  progressMsg?: string | null;
 }
 
-export function Preview({ pdfUrl, error, isCompiling }: PreviewProps) {
+export function Preview({ pdfUrl, error, isCompiling, progressMsg }: PreviewProps) {
   return (
     <div className="preview-container">
       <div className="preview-header">
         <h2>PDF Preview</h2>
-        {isCompiling && <span className="compiling-indicator">Compiling...</span>}
+        {isCompiling && (
+          <span className="compiling-indicator">
+            {progressMsg ? progressMsg : 'Compiling...'}
+          </span>
+        )}
       </div>
       <div className="preview-body">
         {error ? (
