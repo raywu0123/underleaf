@@ -28,7 +28,11 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     // 2. Connect to a WebRTC provider
     // By using the same roomName, multiple clients will connect and sync.
     const provider = new WebrtcProvider(roomName, ydoc, {
-      signaling: ['wss://signaling.yjs.dev', 'wss://y-webrtc-signaling-eu.herokuapp.com']
+      signaling: [
+        'wss://yjs-webrtc-signaling-eu.herokuapp.com',
+        'wss://signaling.yjs.dev',
+        'wss://y-webrtc-signaling-eu.herokuapp.com'
+      ]
     });
     providerRef.current = provider;
 
