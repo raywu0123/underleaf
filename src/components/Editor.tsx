@@ -20,6 +20,28 @@ interface UserAwareness {
 const ANIMALS = ['Panda', 'Tiger', 'Penguin', 'Koala', 'Fox', 'Rabbit', 'Lion', 'Bear', 'Wolf', 'Owl', 'Dolphin', 'Eagle', 'Turtle', 'Cheetah', 'Elephant', 'Monkey'];
 const getRandomName = () => `Anonymous ${ANIMALS[Math.floor(Math.random() * ANIMALS.length)]}`;
 
+const USER_KEY = 'underleaf_user_profile';
+
+const getOrCreateUser = (): UserAwareness => {
+  const stored = localStorage.getItem(USER_KEY);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.error("Failed to parse stored user profile", e);
+    }
+  }
+
+  const newUser: UserAwareness = {
+    name: getRandomName(),
+    color: randomColor({ luminosity: 'dark' }),
+    id: Math.random().toString(36).substring(7)
+  };
+
+  localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+  return newUser;
+};
+
 export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const editorRef = useRef<any>(null);
   const providerRef = useRef<YPartyKitProvider | null>(null);
@@ -52,15 +74,9 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     });
 
     // 3. Setup Awareness (Avatars & Cursors)
-    const userColor = randomColor({ luminosity: 'dark' });
-    const userName = getRandomName();
-    const userId = Math.random().toString(36).substring(7);
+    const user = getOrCreateUser();
 
-    provider.awareness.setLocalStateField('user', {
-      name: userName,
-      color: userColor,
-      id: userId
-    });
+    provider.awareness.setLocalStateField('user', user);
 
     provider.awareness.on('change', () => {
       const states = Array.from(provider.awareness.getStates().values());
