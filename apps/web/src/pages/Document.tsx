@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import * as Y from 'yjs';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { Editor } from '../components/Editor';
 import { Preview } from '../components/Preview';
 import { compiler } from '../lib/compiler';
@@ -25,7 +26,7 @@ export function Document() {
 
   const titleRef = useRef<Y.Text | null>(null);
 
-  const handleDocReady = (ydoc: Y.Doc, provider: any) => {
+  const handleDocReady = (ydoc: Y.Doc, provider: HocuspocusProvider) => {
     const ytitle = ydoc.getText('title');
     titleRef.current = ytitle;
 
