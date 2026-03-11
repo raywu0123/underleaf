@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { store, type DocumentInfo } from '../lib/store';
+import { store } from '../lib/store';
 
 export function Dashboard() {
-  const [documents, setDocuments] = useState<DocumentInfo[]>([]);
+  const [documentsState, setDocumentsState] = useState(() => store.getDocuments());
   const [newTitle, setNewTitle] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setDocuments(store.getDocuments().sort((a, b) => b.lastModifiedAt - a.lastModifiedAt));
-  }, []);
+  // Compute sorted documents derived from state
+  const sortedDocuments = useMemo(() => {
+    return [...documentsState].sort((a, b) => b.lastModifiedAt - a.lastModifiedAt);
+  }, [documentsState]);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ export function Dashboard() {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this document?')) {
       store.deleteDocument(id);
-      setDocuments(store.getDocuments().sort((a, b) => b.lastModifiedAt - a.lastModifiedAt));
+      setDocumentsState(store.getDocuments());
     }
   };
 
@@ -65,13 +66,13 @@ export function Dashboard() {
         <section className="documents-section">
           <h2>Recent Documents</h2>
           
-          {documents.length === 0 ? (
+          {sortedDocuments.length === 0 ? (
             <div className="no-docs">
               <p>You haven't created any documents yet. Create one above to get started!</p>
             </div>
           ) : (
             <div className="documents-grid">
-              {documents.map(doc => (
+              {sortedDocuments.map(doc => (
                 <Link to={`/doc/${doc.id}`} key={doc.id} className="document-card">
                   <div className="doc-card-content">
                     <h3>{doc.title}</h3>

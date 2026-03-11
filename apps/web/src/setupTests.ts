@@ -15,8 +15,17 @@ vi.mock('y-monaco', () => ({
 
 // Mock Worker for JSDOM
 class WorkerMock {
-  onmessage = null;
+  onmessage: ((this: Worker, ev: MessageEvent) => unknown) | null = null;
   postMessage() {}
   terminate() {}
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() { return true; }
+  onerror = null;
 }
-window.Worker = WorkerMock as any;
+window.Worker = WorkerMock as unknown as typeof Worker;
+
+// Mock queryCommandSupported for Monaco editor imports in JSDOM
+if (typeof document !== 'undefined' && !document.queryCommandSupported) {
+  document.queryCommandSupported = vi.fn().mockReturnValue(true);
+}

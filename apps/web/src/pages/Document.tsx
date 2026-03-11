@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Editor } from '../components/Editor';
 import { Preview } from '../components/Preview';
@@ -11,17 +11,14 @@ export function Document() {
   const [error, setError] = useState<string | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [progressMsg, setProgressMsg] = useState<string | null>(null);
-  const [docTitle, setDocTitle] = useState('Untitled Document');
 
-  useEffect(() => {
-    if (id) {
-      const docs = store.getDocuments();
-      const doc = docs.find(d => d.id === id);
-      if (doc) {
-        setDocTitle(doc.title);
-      }
-    }
-  }, [id]);
+  const documents = useMemo(() => store.getDocuments(), []);
+  
+  const docTitle = useMemo(() => {
+    if (!id) return 'Untitled Document';
+    const doc = documents.find(d => d.id === id);
+    return doc ? doc.title : 'Untitled Document';
+  }, [id, documents]);
 
   const handleCompile = async (content: string) => {
     if (isCompiling || !id) return;

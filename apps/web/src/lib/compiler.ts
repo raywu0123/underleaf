@@ -2,18 +2,22 @@ import { BusyTexRunner, PdfLatex } from 'texlyre-busytex';
 
 export type ProgressCallback = (msg: string) => void;
 
+interface BusyTexMessage {
+  print?: string;
+}
+
 // Monkey-patch Worker to capture BusyTeX initialization prints
 const OriginalWorker = window.Worker;
 window.Worker = class extends OriginalWorker {
   constructor(stringUrl: string | URL, options?: WorkerOptions) {
     super(stringUrl, options);
-    this.addEventListener('message', (e) => {
+    this.addEventListener('message', (e: MessageEvent<BusyTexMessage>) => {
       if (typeof e.data?.print === 'string' && e.data.print.includes('Downloading data')) {
         window.dispatchEvent(new CustomEvent('busytex-download', { detail: e.data.print }));
       }
     });
   }
-} as any;
+} as unknown as typeof OriginalWorker;
 
 export class LatexCompiler {
   private runner: BusyTexRunner | null = null;
@@ -45,7 +49,7 @@ export class LatexCompiler {
 
   async compile(code: string, onProgress?: ProgressCallback): Promise<{ success: boolean; pdfUrl?: string; error?: string }> {
     const handleProgress = (e: Event) => {
-      if (onProgress) onProgress((e as CustomEvent).detail);
+      if (onProgress) onProgress((e as CustomEvent<string>).detail);
     };
     
     if (onProgress) {
@@ -69,14 +73,15 @@ export class LatexCompiler {
       });
 
       if (result.success && result.pdf) {
-        const blob = new Blob([result.pdf as any], { type: 'application/pdf' });
+        const blob = new Blob([result.pdf as BlobPart], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
         return { success: true, pdfUrl: url };
       } else {
         return { success: false, error: result.log };
       }
-    } catch (e: any) {
-      return { success: false, error: e.message || 'Unknown compilation error' };
+    } catch (e) {
+      const error = e as Error;
+      return { success: false, error: error.message || 'Unknown compilation error' };
     } finally {
       if (onProgress) {
         window.removeEventListener('busytex-download', handleProgress);

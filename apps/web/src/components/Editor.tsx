@@ -4,6 +4,7 @@ import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { MonacoBinding } from 'y-monaco';
 import randomColor from 'randomcolor';
+import * as monaco from 'monaco-editor';
 
 interface EditorProps {
   roomName: string;
@@ -26,7 +27,7 @@ const getOrCreateUser = (): UserAwareness => {
   const stored = localStorage.getItem(USER_KEY);
   if (stored) {
     try {
-      return JSON.parse(stored);
+      return JSON.parse(stored) as UserAwareness;
     } catch (e) {
       console.error("Failed to parse stored user profile", e);
     }
@@ -43,7 +44,7 @@ const getOrCreateUser = (): UserAwareness => {
 };
 
 export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const providerRef = useRef<HocuspocusProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
@@ -51,7 +52,7 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const [connected, setConnected] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState<UserAwareness[]>([]);
 
-  const handleEditorDidMount: OnMount = (editor, monaco) => {
+  const handleEditorDidMount: OnMount = (editor, monacoLib) => {
     editorRef.current = editor;
 
     // 1. Create a new Yjs document
@@ -69,7 +70,7 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     });
     providerRef.current = provider;
 
-    provider.on('status', (event: any) => {
+    provider.on('status', (event: { status: string }) => {
       setConnected(event.status === 'connected');
     });
 
@@ -80,7 +81,10 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
 
     provider.awareness.on('change', () => {
       const states = Array.from(provider.awareness.getStates().values());
-      const users = states.map((state: any) => state.user).filter(Boolean);
+      const users = states
+        .map((state: Record<string, unknown>) => state.user)
+        .filter((u): u is UserAwareness => Boolean(u && typeof u === 'object' && 'id' in u));
+      
       // Ensure uniqueness by ID in case of duplicates
       const uniqueUsers = Array.from(new Map(users.map(u => [u.id, u])).values());
       setConnectedUsers(uniqueUsers);
@@ -92,8 +96,8 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     // 5. Bind Yjs to the Monaco Editor
     const binding = new MonacoBinding(
       ytext,
-      editorRef.current.getModel(),
-      new Set([editorRef.current]),
+      editor.getModel()!,
+      new Set([editor]),
       provider.awareness
     );
     bindingRef.current = binding;
@@ -116,7 +120,7 @@ E = mc^2
     }
 
     // Command to compile (e.g., Ctrl/Cmd + Enter)
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+    editor.addCommand(monacoLib.KeyMod.CtrlCmd | monacoLib.KeyCode.Enter, () => {
       onCompile(ytext.toString());
     });
     
