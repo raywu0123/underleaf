@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "postinstall": "npx texlyre-busytex download-assets ./public/core",
+    "postinstall": "npx texlyre-busytex download-assets ./public/core && node -e \"require('fs').writeFileSync('public/core/busytex/texlive-extra.js', '// dummy')\"",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "postbuild": "node -e \"require('fs').writeFileSync('dist/core/busytex/texlive-extra.js', '// dummy')\"",
