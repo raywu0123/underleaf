@@ -127,6 +127,8 @@ export function Editor({ roomName, onCompile, isCompiling, onDocReady }: EditorP
     );
     bindingRef.current = binding;
 
+    let hasCompiledInitially = false;
+
     // Wait for the provider to sync with the server before checking if empty
     provider.on('synced', () => {
       if (ytext.toString() === '') {
@@ -144,17 +146,20 @@ E = mc^2
 \\end{document}
 `);
       }
+
+      if (!hasCompiledInitially) {
+        hasCompiledInitially = true;
+        // Trigger compile once the document content is ready
+        setTimeout(() => {
+          onCompile(ytext.toString());
+        }, 100);
+      }
     });
 
     // Command to compile (e.g., Ctrl/Cmd + Enter)
     editor.addCommand(monacoLib.KeyMod.CtrlCmd | monacoLib.KeyCode.Enter, () => {
       onCompile(ytext.toString());
     });
-    
-    // Initial compile
-    setTimeout(() => {
-      onCompile(ytext.toString());
-    }, 1000);
   };
 
   useEffect(() => {
@@ -170,10 +175,10 @@ E = mc^2
       <div className="editor-header">
         <div className="editor-header-left">
           <span className="room-info">
-            Room: <strong>{roomName}</strong> 
-            <span className={connected ? 'status connected' : 'status'}>
-              {connected ? ' (Connected)' : ' (Connecting...)'}
-            </span>
+            <span 
+              className={connected ? 'status connected' : 'status'} 
+              title={connected ? 'Connected' : 'Connecting...'}
+            ></span>
           </span>
         </div>
         

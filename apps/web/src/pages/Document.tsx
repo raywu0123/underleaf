@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
+import { Copy, Check, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { Editor } from '../components/Editor';
 import { Preview } from '../components/Preview';
 import { compiler } from '../lib/compiler';
@@ -14,6 +15,9 @@ export function Document() {
   const [isCompiling, setIsCompiling] = useState(false);
   const [progressMsg, setProgressMsg] = useState<string | null>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isEditorCollapsed, setIsEditorCollapsed] = useState(false);
+  const [isPreviewCollapsed, setIsPreviewCollapsed] = useState(false);
 
   const documents = useMemo(() => store.getDocuments(), []);
   
@@ -91,6 +95,30 @@ export function Document() {
     setProgressMsg(null);
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const toggleEditor = () => {
+    if (!isEditorCollapsed) {
+      setIsEditorCollapsed(true);
+      setIsPreviewCollapsed(false); // Ensure at least one is open
+    } else {
+      setIsEditorCollapsed(false);
+    }
+  };
+
+  const togglePreview = () => {
+    if (!isPreviewCollapsed) {
+      setIsPreviewCollapsed(true);
+      setIsEditorCollapsed(false); // Ensure at least one is open
+    } else {
+      setIsPreviewCollapsed(false);
+    }
+  };
+
   if (!id) {
     return <div>Document not found</div>;
   }
@@ -123,19 +151,39 @@ export function Document() {
             </span>
           )}
         </div>
-        <div className="room-sharing">
-          Share this link to collaborate: 
-          <input 
-            type="text" 
-            readOnly 
-            value={window.location.href} 
-            onClick={e => e.currentTarget.select()} 
-          />
+        <div className="navbar-right">
+          <div className="layout-controls">
+            <button 
+              className={`layout-btn ${isEditorCollapsed ? 'active' : ''}`}
+              onClick={toggleEditor}
+              title={isEditorCollapsed ? "Show Editor" : "Collapse Editor"}
+            >
+              {isEditorCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+            <button 
+              className={`layout-btn ${isPreviewCollapsed ? 'active' : ''}`}
+              onClick={togglePreview}
+              title={isPreviewCollapsed ? "Show Preview" : "Collapse Preview"}
+            >
+              {isPreviewCollapsed ? <PanelRightOpen size={18} /> : <PanelRightClose size={18} />}
+            </button>
+          </div>
+          <div className="room-sharing" title="Share this link to collaborate">
+            <input 
+              type="text" 
+              readOnly 
+              value={window.location.href} 
+              onClick={e => e.currentTarget.select()} 
+            />
+            <button className="copy-link-btn" onClick={handleCopyLink} aria-label="Copy link">
+              {isCopied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
         </div>
       </header>
       
       <main className="main-content">
-        <div className="pane editor-pane">
+        <div className="pane editor-pane" style={{ display: isEditorCollapsed ? 'none' : 'flex' }}>
           <Editor 
             roomName={`underleaf-doc-${id}`} 
             onCompile={handleCompile} 
@@ -144,7 +192,7 @@ export function Document() {
           />
         </div>
         
-        <div className="pane preview-pane">
+        <div className="pane preview-pane" style={{ display: isPreviewCollapsed ? 'none' : 'flex' }}>
           <Preview 
             pdfUrl={pdfUrl} 
             error={error} 

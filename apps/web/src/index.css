@@ -52,11 +52,49 @@ body {
   color: #61dafb;
 }
 
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.layout-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #1e1e1e;
+  padding: 4px;
+  border-radius: 6px;
+  border: 1px solid #444;
+}
+
+.layout-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.layout-btn:hover {
+  color: #fff;
+  background-color: #333;
+}
+
+.layout-btn.active {
+  color: #61dafb;
+  background-color: #2c2c2c;
+}
+
 .room-sharing {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.9rem;
 }
 
 .room-sharing input {
@@ -67,6 +105,24 @@ body {
   border-radius: 4px;
   width: 300px;
   font-family: monospace;
+}
+
+.copy-link-btn {
+  background-color: #1e1e1e;
+  color: #ccc;
+  border: 1px solid #444;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-link-btn:hover {
+  background-color: #333;
+  color: #fff;
 }
 
 .main-content {
@@ -115,10 +171,16 @@ body {
 }
 
 .status {
-  color: #ffaa00;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ffaa00;
+  margin-left: 4px;
 }
+
 .status.connected {
-  color: #00ff00;
+  background-color: #00ff00;
 }
 
 .compile-btn {
