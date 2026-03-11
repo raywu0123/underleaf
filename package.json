@@ -8,7 +8,8 @@
     "dev": "concurrently \"npm run dev -w @underleaf/web\" \"npm run dev -w @underleaf/server\"",
     "build": "npm run build -w @underleaf/web",
     "deploy": "npm run deploy -w @underleaf/web",
-    "lint": "npm run lint -w @underleaf/web"
+    "lint": "npm run lint -w @underleaf/web",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

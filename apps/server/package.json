@@ -4,10 +4,14 @@
   "description": "Real-time backend",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hocuspocus/server": "^3.4.4",
     "yjs": "^13.6.29"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
   }
 }
