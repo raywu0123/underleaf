@@ -4,7 +4,7 @@
   "description": "Real-time backend",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
+    "dev": "nodemon index.js",
     "test": "vitest run"
   },
   "dependencies": {
@@ -12,6 +12,7 @@
     "yjs": "^13.6.29"
   },
   "devDependencies": {
+    "nodemon": "^3.1.14",
     "vitest": "^3.2.4"
   }
 }
