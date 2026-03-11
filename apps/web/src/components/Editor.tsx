@@ -10,12 +10,14 @@ interface EditorProps {
   roomName: string;
   onCompile: (content: string) => void;
   isCompiling: boolean;
+  onDocReady?: (ydoc: Y.Doc, provider: HocuspocusProvider) => void;
 }
 
 interface UserAwareness {
   name: string;
   color: string;
   id: string;
+  version?: number;
 }
 
 const ANIMALS = ['Panda', 'Tiger', 'Penguin', 'Koala', 'Fox', 'Rabbit', 'Lion', 'Bear', 'Wolf', 'Owl', 'Dolphin', 'Eagle', 'Turtle', 'Cheetah', 'Elephant', 'Monkey'];
@@ -43,7 +45,7 @@ const getOrCreateUser = (): UserAwareness => {
   return newUser;
 };
 
-export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
+export function Editor({ roomName, onCompile, isCompiling, onDocReady }: EditorProps) {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const providerRef = useRef<HocuspocusProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
@@ -62,13 +64,17 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     // 2. Connect to the custom Hocuspocus server
     // By default, points to the local server running on port 1234.
     // In production, you can set VITE_WS_URL to your hosted server (e.g., wss://api.yourdomain.com/ws)
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:1234';
+    const wsUrl = import.meta.env.VITE_WS_URL || `ws://${window.location.hostname}:1234`;
     const provider = new HocuspocusProvider({
       url: wsUrl,
       name: roomName,
       document: ydoc,
     });
     providerRef.current = provider;
+
+    if (onDocReady) {
+      onDocReady(ydoc, provider);
+    }
 
     provider.on('status', (event: { status: string }) => {
       setConnected(event.status === 'connected');
@@ -78,7 +84,10 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     const user = getOrCreateUser();
 
     if (provider.awareness) {
-      provider.awareness.setLocalStateField('user', user);
+      provider.awareness.setLocalStateField('user', {
+        ...user,
+        version: __BUILD_TIMESTAMP__
+      });
 
       provider.awareness.on('change', () => {
         if (!provider.awareness) return;
@@ -86,13 +95,26 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
         const users = states
           .map((state: Record<string, unknown>) => state.user)
           .filter((u): u is UserAwareness => Boolean(u && typeof u === 'object' && 'id' in u));
-        
+
+        // Version Check
+        const newerVersionExists = users.some(u => u.version && u.version > __BUILD_TIMESTAMP__);
+        if (newerVersionExists) {
+          const lastReload = sessionStorage.getItem('last_version_reload');
+          const now = Date.now();
+          if (!lastReload || now - parseInt(lastReload) > 10000) {
+            sessionStorage.setItem('last_version_reload', now.toString());
+            window.location.reload();
+          } else {
+            console.warn('Newer version detected, but reloaded recently. Waiting for cache update.');
+          }
+          return;
+        }
+
         // Ensure uniqueness by ID in case of duplicates
         const uniqueUsers = Array.from(new Map(users.map(u => [u.id, u])).values());
         setConnectedUsers(uniqueUsers);
       });
     }
-
     // 4. Define a shared text type
     const ytext = ydoc.getText('monaco');
 
@@ -105,9 +127,10 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     );
     bindingRef.current = binding;
 
-    // Optionally set some default text if empty
-    if (ytext.toString() === '') {
-      ytext.insert(0, `\\documentclass{article}
+    // Wait for the provider to sync with the server before checking if empty
+    provider.on('synced', () => {
+      if (ytext.toString() === '') {
+        ytext.insert(0, `\\documentclass{article}
 \\usepackage{amsmath}
 
 \\begin{document}
@@ -120,7 +143,8 @@ E = mc^2
 
 \\end{document}
 `);
-    }
+      }
+    });
 
     // Command to compile (e.g., Ctrl/Cmd + Enter)
     editor.addCommand(monacoLib.KeyMod.CtrlCmd | monacoLib.KeyCode.Enter, () => {

@@ -385,6 +385,30 @@ body {
 .doc-title {
   color: #fff;
   font-weight: 500;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.doc-title:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.doc-title-input {
+  background-color: #2a2a2a;
+  color: #fff;
+  border: 1px solid #4a4a4a;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.doc-title-input:focus {
+  border-color: #007bff;
 }
 
 .dashboard-footer {

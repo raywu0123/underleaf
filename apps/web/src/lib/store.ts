@@ -48,5 +48,24 @@ export const store = {
       doc.lastModifiedAt = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
     }
+  },
+
+  upsertDocument: (id: string, title: string): void => {
+    const docs = store.getDocuments();
+    const doc = docs.find(d => d.id === id);
+    if (doc) {
+      doc.title = title;
+      doc.lastModifiedAt = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+    } else {
+      const newDoc: DocumentInfo = {
+        id,
+        title,
+        createdAt: Date.now(),
+        lastModifiedAt: Date.now(),
+      };
+      docs.push(newDoc);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
+    }
   }
 };

@@ -1,5 +1,7 @@
 # Underleaf 🍃
 
+[![CI](https://github.com/raywu0123/underleaf/actions/workflows/ci.yml/badge.svg)](https://github.com/raywu0123/underleaf/actions/workflows/ci.yml)
+
 Underleaf is a browser-based, collaborative LaTeX editor. It provides a real-time editing experience combined with local, privacy-first PDF compilation using WebAssembly. 
 
 Live Demo: [https://raywu0123.github.io/underleaf/](https://raywu0123.github.io/underleaf/)

@@ -9,7 +9,8 @@
     "build": "npm run build -w @underleaf/web",
     "deploy": "npm run deploy -w @underleaf/web",
     "lint": "npm run lint -w @underleaf/web",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

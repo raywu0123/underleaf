@@ -2,6 +2,7 @@ const { Server } = require("@hocuspocus/server");
 
 const server = new Server({
   port: 1234,
+  host: "0.0.0.0",
   
   // You can easily add extensions here in the future
   // e.g., Database persistence, Redis scaling, Authentication, Webhooks
