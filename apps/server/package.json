@@ -1,0 +1,13 @@
+{
+  "name": "@underleaf/server",
+  "version": "1.0.0",
+  "description": "Real-time backend",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "@hocuspocus/server": "^3.4.4",
+    "yjs": "^13.6.29"
+  }
+}
