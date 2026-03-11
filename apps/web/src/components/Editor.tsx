@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import MonacoEditor, { type OnMount } from '@monaco-editor/react';
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { MonacoBinding } from 'y-monaco';
 import randomColor from 'randomcolor';
 
@@ -44,7 +44,7 @@ const getOrCreateUser = (): UserAwareness => {
 
 export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
   const editorRef = useRef<any>(null);
-  const providerRef = useRef<WebsocketProvider | null>(null);
+  const providerRef = useRef<HocuspocusProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const docRef = useRef<Y.Doc | null>(null);
 
@@ -62,11 +62,11 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     // By default, points to the local server running on port 1234.
     // In production, you can set VITE_WS_URL to your hosted server (e.g., wss://api.yourdomain.com/ws)
     const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:1234';
-    const provider = new WebsocketProvider(
-      wsUrl,
-      roomName,
-      ydoc
-    );
+    const provider = new HocuspocusProvider({
+      url: wsUrl,
+      name: roomName,
+      document: ydoc,
+    });
     providerRef.current = provider;
 
     provider.on('status', (event: any) => {

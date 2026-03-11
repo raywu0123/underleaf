@@ -15,6 +15,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@hocuspocus/provider": "^3.4.4",
     "@monaco-editor/react": "^4.7.0",
     "coi-serviceworker": "^0.1.7",
     "lucide-react": "^0.577.0",
@@ -25,7 +26,6 @@
     "texlyre-busytex": "^0.1.2-alpha",
     "uuid": "^13.0.0",
     "y-monaco": "^0.1.6",
-    "y-websocket": "^3.0.0",
     "yjs": "^13.6.29"
   },
   "devDependencies": {
