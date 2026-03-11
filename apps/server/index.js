@@ -1,6 +1,6 @@
 const { Server } = require("@hocuspocus/server");
 
-const server = Server.configure({
+const server = new Server({
   port: 1234,
   
   // You can easily add extensions here in the future
