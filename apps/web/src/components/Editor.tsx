@@ -77,18 +77,21 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     // 3. Setup Awareness (Avatars & Cursors)
     const user = getOrCreateUser();
 
-    provider.awareness.setLocalStateField('user', user);
+    if (provider.awareness) {
+      provider.awareness.setLocalStateField('user', user);
 
-    provider.awareness.on('change', () => {
-      const states = Array.from(provider.awareness.getStates().values());
-      const users = states
-        .map((state: Record<string, unknown>) => state.user)
-        .filter((u): u is UserAwareness => Boolean(u && typeof u === 'object' && 'id' in u));
-      
-      // Ensure uniqueness by ID in case of duplicates
-      const uniqueUsers = Array.from(new Map(users.map(u => [u.id, u])).values());
-      setConnectedUsers(uniqueUsers);
-    });
+      provider.awareness.on('change', () => {
+        if (!provider.awareness) return;
+        const states = Array.from(provider.awareness.getStates().values());
+        const users = states
+          .map((state: Record<string, unknown>) => state.user)
+          .filter((u): u is UserAwareness => Boolean(u && typeof u === 'object' && 'id' in u));
+        
+        // Ensure uniqueness by ID in case of duplicates
+        const uniqueUsers = Array.from(new Map(users.map(u => [u.id, u])).values());
+        setConnectedUsers(uniqueUsers);
+      });
+    }
 
     // 4. Define a shared text type
     const ytext = ydoc.getText('monaco');
