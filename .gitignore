@@ -33,3 +33,8 @@ apps/web/public/core/busytex
 .env.test.local
 .env.production.local
 
+# Coverage
+coverage
+apps/*/coverage
+
+
