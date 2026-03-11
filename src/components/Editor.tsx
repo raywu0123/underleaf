@@ -58,10 +58,12 @@ export function Editor({ roomName, onCompile, isCompiling }: EditorProps) {
     const ydoc = new Y.Doc();
     docRef.current = ydoc;
 
-    // 2. Connect to the official Yjs WebSocket demo server
-    // For a production app, you would run your own y-websocket server (e.g., node ./node_modules/y-websocket/bin/server.js)
+    // 2. Connect to the custom Hocuspocus server
+    // By default, points to the local server running on port 1234.
+    // In production, you can set VITE_WS_URL to your hosted server (e.g., wss://api.yourdomain.com/ws)
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:1234';
     const provider = new WebsocketProvider(
-      'wss://demos.yjs.dev/ws',
+      wsUrl,
       roomName,
       ydoc
     );
